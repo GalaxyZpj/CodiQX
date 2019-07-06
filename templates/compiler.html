@@ -1,0 +1,31 @@
+<html>
+    <form action="/result">
+        <div>
+            <div align = "right">
+                Choose Language: 
+                <select name="language" id="language">
+                        <option value="4">C</option>
+                        <option value="10">C++</option>
+                        <option value="26">Java</option>
+                        <option value="29">Javascript</option>
+                        <option value="34">Python</option>
+                </select>
+            </div>
+            <div align = "center">
+                <b>QUESTION <br><br> {{question.0}}:  {{question.1}}</b>
+                
+                <div><br>
+                    <textarea name="code" id="code" cols="230" rows="50"></textarea>
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+        <center>
+            <input type="submit" name = "subcode"><br>
+        </center>
+        <br><br>
+        {% block output %}
+        {% endblock %}
+    </form>
+</html>

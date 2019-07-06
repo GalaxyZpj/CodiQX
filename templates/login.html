@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <title>Login</title>
+    </head>
+
+    <body>
+        <form action="/loginCheck">
+            <center>
+                <h1><font color = 'blue'>Login page</font></h1><br><br>
+                <table>
+                    <tr>
+                        <td><h3>Email:</h3></td>
+                        <td><input type="email" name = 'email'></td>
+                    </tr>
+                    <tr>
+                        <td><h3>Password:</h3></td>
+                        <td><input type="password" name = 'pass'></td>
+                    </tr>
+                </table>
+                <input type="submit" value = 'Login'><br><br><br>
+                <font color = "red"><b>{{login}}</b></font>
+            </center>
+        </form>
+    </body>
+</html>

@@ -1,0 +1,14 @@
+<html>
+    <head></head>
+
+    <body>
+        <form action="/qView">
+        <center>
+            <h1>QUESTIONS</h1><br><br>
+            {% for x in qBank %}
+                <button type="submit" name = 'qid' value = "{{x.3}}">{{x.4}}</button>  
+            {% endfor %}
+        </center>
+        </form>
+    </body>
+</html>
