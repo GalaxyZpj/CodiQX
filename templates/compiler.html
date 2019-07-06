@@ -8,24 +8,39 @@
                         <option value="10">C++</option>
                         <option value="26">Java</option>
                         <option value="29">Javascript</option>
-                        <option value="34">Python</option>
+                        <option value="34" selected>Python</option>
                 </select>
             </div>
             <div align = "center">
                 <b>QUESTION <br><br> {{question.0}}:  {{question.1}}</b>
                 
                 <div><br>
-                    <textarea name="code" id="code" cols="230" rows="50"></textarea>
+                    <textarea name="code" id="code" cols="230" rows="50" value = "{{code}}"></textarea>
                 </div>
             </div>
         </div>
         <br>
         <br>
         <center>
-            <input type="submit" name = "subcode"><br>
+            <input type="submit" name = "subcode"><br><br><br>
+            {% for x in d %}
+            <table width = "700" height = "200" border = "1">
+                <caption><h3>Testcase {{x.0}}</h3></caption><br>
+                <tr>
+                    <td align="center"><b>stdin:  </b></td>
+                    <td align="center">{{x.1}}</td>
+                </tr>
+                <tr>
+                    <td align="center"><b>stdout:  </b></td>
+                    <td align="center">{{x.2}}</td>
+                </tr>
+                <tr>
+                    <td align="center"><b>Description:  </b></td>
+                    <td align="center">{{x.3}}
+                </tr>
+            </table>
+            {% endfor %}
         </center>
         <br><br>
-        {% block output %}
-        {% endblock %}
     </form>
 </html>

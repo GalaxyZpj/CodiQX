@@ -11,6 +11,8 @@ import requests, json
 use_base64 = False
 testcases = {}
 question = []
+rootCode = ''
+
 def homepage(request):
     return render(request, 'base.html')
 
@@ -18,6 +20,7 @@ def redirect(request):
     if request.GET['goto'] == 'Login': return render(request, 'login.html', {'login': ''})
     elif request.GET['goto'] == 'Register': return render(request, 'register.html')
     elif request.GET['goto'] == 'RegisterQ': return render(request, 'new.html')
+    elif request.GET['goto'] == 'RegisterTestcase': return render(request, 'addtestcase.html')
 
 def loginCheck(request):
     conn = sql.connect(host = 'localhost', port = 3306, user = 'root', password = '12345678', db = 'Practice')
@@ -47,14 +50,7 @@ def register(request):
     return HttpResponse("<html><h1>User Registered.</h1></html>")
 
 def result(request):
-    global testcases
-    global question
-    # Global
-    URL = ''
-    language_d = {}
-    data_d = {}
-    result = None
-    use_base64 = False
+    global testcases, question, rootCode
 
     URL = 'https://api.judge0.com/submissions/' 
 
@@ -94,7 +90,9 @@ def result(request):
         data_d = data
 
     def code_string():
+        global rootCode
         code = request.GET['code']
+        rootCode = code
         return code
 
     def language_id(l):
@@ -166,8 +164,9 @@ def result(request):
         d.append([i+1,testcases[t[i]]['stdin'], r['stdout'], r['status']['description']])
     # print('\n\n\n', returnResult, '\n\n\n')
     # print('\n\n\n', testcases, '\n\n\n')
-    print(d)
-    return render(request, 'compiler_extended.html', {'d': d, 'question': question})
+    print('\n\n\n\n\n\n\n\n',rootCode)
+    return render(request, 'compiler.html', {'d': d, 'question': question, 'code': rootCode})
+    # return render(request, 'compiler_extended.html', {'d': d, 'question': question, 'code': rootCode})
     # return render(request, 'compiler_extended.html', d)
 
 def questionDashboard(request):
@@ -207,8 +206,7 @@ def questionDashboard(request):
     return render(request, "new_extended.html")
 
 def questionDisplay(request):
-    global testcases
-    global question
+    global testcases, question
     qid = request.GET['qid']
     conn = sql.connect(host = 'localhost', port = 3306, user = 'root', password = '12345678', db = 'Practice')
     cmd = conn.cursor()
@@ -222,3 +220,41 @@ def questionDisplay(request):
     print('\n\n\n',testcases)
     for i, x in enumerate(testcases_list): testcases[i+1] = {'stdin': x[1], 'expected_output': x[2], 'description': 'comment_result'}
     return render(request, "compiler.html", {'question': question})
+
+def addTestcase(request):
+    conn = sql.connect(host = 'localhost', port = 3306, user = 'root', password = '12345678', db = 'Practice')
+    cmd = conn.cursor()
+    transaction_id = 1
+    output = ''
+    qNo = ''
+    stdin = ''
+    expected_output = ''
+    orgID = request.GET['orgID']
+    op = request.GET['send']
+    orgList = []
+    
+    if op == 'orgID':
+        q = f"select question_id, question_title from OrganizationRecord where organization_id = '{orgID}'"
+        cmd.execute(q)
+        orgList = cmd.fetchall()
+        if len(orgList) == 0:
+            output = 'Organization Not Registered.'
+            return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
+    if op == 'Submit':
+        qNo = request.GET['qNo']
+        stdin = request.GET['stdin']
+        expected_output = request.GET['expected_output']
+        output = 'Data Inserted Successfully'
+        x = 1
+        while True:
+            testcase_id = str(qNo)+ '_' + str(x)
+            try:
+                q = f"insert into Testcases values ({transaction_id}, '{qNo}', '{testcase_id}', '{stdin}', '{expected_output}')"
+                cmd.execute(q)
+                break
+            except:
+                print('\n\nTestcase Exists\n\n')
+            x += 1
+        conn.commit()
+    conn.close()
+    return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})

@@ -1,0 +1,38 @@
+<html>
+    <head></head>
+
+    <body>
+        <form action="\addTestcase">
+            <center>
+                <h1><font color = "red">Add Testcase</font></h1><br>
+                <h1><font color = "green">{{output}}</font></h1><br>
+                <table cellspacing = "50">
+                    <tr>
+                        <td align="center"><b>Organization ID: </b></td>
+                        <td><input type="text" name='orgID' value = "{{orgID}}"></td>
+                        <td><input type="submit" name='send' value="orgID"></td>
+                    </tr>
+                    <tr>
+                        <td align="center"><b>Question Number: </b></td>
+                        <td>
+                            <select name='qNo'>
+                                {% for x in orgList %}
+                                    <option value="{{x.0}}">{{x.0}}: {{x.1}}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>STDIN: </b></td>
+                        <td><textarea name='stdin' cols="30" rows="10" value = "{{stdin}}"></textarea></td>
+                    </tr>
+                    <tr>
+                        <td><b>Expected Output: </b></td>
+                        <td><textarea name='expected_output' cols="30" rows="10" value = "{{expected_output}}"></textarea></td>
+                    </tr>
+                </table>
+                <input type="submit" name = 'send' value="Submit">
+            </center>
+        </form>
+    </body>
+</html>
