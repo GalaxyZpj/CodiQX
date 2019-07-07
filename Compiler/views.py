@@ -19,7 +19,7 @@ def homepage(request):
 def redirect(request):
     if request.GET['goto'] == 'Login': return render(request, 'login.html', {'login': ''})
     elif request.GET['goto'] == 'Register': return render(request, 'register.html')
-    elif request.GET['goto'] == 'RegisterQ': return render(request, 'new.html')
+    elif request.GET['goto'] == 'RegisterQ': return render(request, "addquestion.html", {'wall': ['True', '', ''], 'output': '', 'setType': '', 'setList': [], 'set_no': '', 'qID': ''})
     elif request.GET['goto'] == 'RegisterTestcase': return render(request, 'addtestcase.html')
 
 def loginCheck(request):
@@ -156,6 +156,7 @@ def result(request):
         token = generate_token(s_dict)
         response = fetch_server(token)
         s = display_output(response)
+        print('\n\n\n', s, '\n\n\n')
         returnResult.append(s)
     d = []
     t = []
@@ -164,7 +165,7 @@ def result(request):
         d.append([i+1,testcases[t[i]]['stdin'], r['stdout'], r['status']['description']])
     # print('\n\n\n', returnResult, '\n\n\n')
     # print('\n\n\n', testcases, '\n\n\n')
-    print('\n\n\n\n\n\n\n\n',rootCode)
+    #print('\n\n\n\n\n\n\n\n',rootCode)
     return render(request, 'compiler.html', {'d': d, 'question': question, 'code': rootCode})
     # return render(request, 'compiler_extended.html', {'d': d, 'question': question, 'code': rootCode})
     # return render(request, 'compiler_extended.html', d)
@@ -173,37 +174,68 @@ def questionDashboard(request):
     def insertQuestion():
         x = 1
         while True:
-            testcase_id = str(question_id)+ '_' + str(x)
+            question_id = set_no + 'q' + str(x)
+            print('\n\n\n', question_id)
             try:
-                q = f"insert into Testcases values ({transaction_id}, '{question_id}', '{testcase_id}', '{stdin}', '{expected_output}')"
+                q = f"insert into OrganizationRecord values ({transaction_id}, '{org_id}', '{set_no}', '{question_id}', '{question_title}','{question}')"
                 cmd.execute(q)
-                break
-            except:
-                print('\n\nTestcase Exists\n\n')
+                return question_id
+            except Exception as e:
+                print(e, '\n\nQuestion Exists\n\n')
             x += 1
-
-    transaction_id = 1
-    organization_id = request.GET['org_id']
-    set_no = str(organization_id) + '_' + str(request.GET['set_id'])
-    question_id = str(set_no) + str(request.GET['ques_id'])
-    question_title = request.GET['ques_title']
-    question = request.GET['ques']
-    stdin = request.GET['stdin']
-    expected_output = request.GET['expected_output']
-
+    def insertSet():
+        x = 1
+        while True:
+            set_no = org_id + '_s' + str(x)
+            question_id = set_no + 'q' + str(1)
+            print('\n\n\n', question_id)
+            try:
+                q = f"insert into OrganizationRecord values ({transaction_id}, '{org_id}', '{set_no}', '{question_id}', '{question_title}','{question}')"
+                cmd.execute(q)
+                return set_no, question_id
+            except Exception as e:
+                print(e, '\n\Set Exists\n\n')
+            x += 1
     conn = sql.connect(host = 'localhost', port = 3306, user = 'root', password = '12345678', db = 'Practice')
     cmd = conn.cursor()
-
+    wall = ['True', '', '']
+    transaction_id = 1
+    setList = []
+    question_id = ''
+    question = ''
+    question_title = ''
     try:
-        q = f"insert into OrganizationRecord values ({transaction_id}, '{organization_id}', '{set_no}', '{question_id}', '{question_title}','{question}')"
+        set_no = request.GET['set_no']
+    except:
+        set_no = ''
+    org_id = request.GET['org_id']
+    try:
+        setType = request.GET['setType']
+    except:
+        setType = ''
+    if setType == 'existing':
+        q = f"select set_no from OrganizationRecord where organization_id = '{org_id}'"
         cmd.execute(q)
-    except Exception as e:
-        print('\n', e, '\n')
+        setTemp = cmd.fetchall()
+        if len(setTemp) == 0: return render(request, "addquestion.html", {'wall': wall, 'output': 'No Entries for your Organization, Please Select \'New\' for Set Type.', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
+        print('\n\n\n\n\n', setTemp)
+        for x in setTemp: 
+            for y in x:
+                if y not in setList: setList.append(y)
+        wall[0], wall[1] = '', 'True'
+        return render(request, "addquestion.html", {'wall': wall, 'output': '', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
+    elif setType == 'new':
+        set_no, question_id = insertSet()
+        wall[0], wall[1] = '', 'True'
+        return render(request, "addquestion.html", {'wall': wall, 'output': '', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
 
-    insertQuestion()
+    question_title = request.GET['ques_title']
+    question = request.GET['ques']
+    question_id = insertQuestion()
     conn.commit()
     conn.close()
-    return render(request, "new_extended.html")
+    if request.GET['send'] == "Submit":
+        return render(request, "addquestion.html", {'wall': wall, 'output': 'Question Added Successfully with ID: ', 'org_id': org_id,  'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
 
 def questionDisplay(request):
     global testcases, question
@@ -229,10 +261,10 @@ def addTestcase(request):
     qNo = ''
     stdin = ''
     expected_output = ''
-    orgID = request.GET['orgID']
-    op = request.GET['send']
+    orgID = request.POST['orgID']
+    op = request.POST['send']
     orgList = []
-    
+
     if op == 'orgID':
         q = f"select question_id, question_title from OrganizationRecord where organization_id = '{orgID}'"
         cmd.execute(q)
@@ -241,9 +273,9 @@ def addTestcase(request):
             output = 'Organization Not Registered.'
             return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
     if op == 'Submit':
-        qNo = request.GET['qNo']
-        stdin = request.GET['stdin']
-        expected_output = request.GET['expected_output']
+        qNo = request.POST['qNo']
+        stdin = request.POST['stdin']
+        expected_output = request.POST['expected_output']
         output = 'Data Inserted Successfully'
         x = 1
         while True:

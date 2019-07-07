@@ -2,7 +2,7 @@
     <head></head>
 
     <body>
-        <form action="\addTestcase">
+        <form action="\addTestcase" method = "POST"> {% csrf_token %}
             <center>
                 <h1><font color = "red">Add Testcase</font></h1><br>
                 <h1><font color = "green">{{output}}</font></h1><br>

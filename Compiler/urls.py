@@ -26,5 +26,5 @@ urlpatterns = [
     path('result/', views.result),
     path('newout/', views.questionDashboard),
     path('qView/', views.questionDisplay),
-    path('addTestcase/', views.addTestcase),
+    path('addTestcase', views.addTestcase),
 ]

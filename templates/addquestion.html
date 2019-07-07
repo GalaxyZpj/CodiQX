@@ -1,0 +1,65 @@
+<html>
+    <head></head>
+
+    <body>
+        <form action="/newout">
+           <center>
+                <h1><font color = "red">QUESTION</font></h1><br>
+                <h2><font color = "blue">{{output}}</font><b>{{qID}}</b></h2>
+               <table cellspacing = "50">
+                    {% if wall.0 == 'True' %}
+                    <tr>
+                       <td><b>Organization ID: </b></td>
+                       <td><input type="text" name = 'org_id' value = "{{org_id}}" size = '30'></td>
+                    </tr>
+                    <tr>
+                        <td><b>Set Type: </b></td>
+                        <td><select name='setType'>
+                            <option value="select">-Select-</option>
+                            <option value="new">New</option>
+                            <option value="existing">Existing</option>
+                        </select></td>  
+                     </tr>
+                </table>
+                <input type="submit" name = 'send' value="setType">
+
+                     {% endif %}
+
+                     {% if wall.1 == 'True' %}
+                        <tr>
+                            <td><b>Organization ID: </b></td>
+                            <td><input type="text" name = 'org_id' value = "{{org_id}}"></td>
+                        </tr>
+                     {% if setType == 'new' %}
+                        <tr>
+                            <td><b>Set ID: </b></td>
+                            <td><input type="text" name = 'set_no' value = "{{set_no}}"></td>
+                        </tr>
+                     {% elif setType == 'existing' %}
+                        <tr>
+                            <td><b>Set ID:</b></td>
+                            <td>
+                            <select name='set_no'>
+                                {% for x in setList %}
+                                    <option value="{{x}}">{{x}}</option>
+                                {% endfor %}
+                            </select>
+                            </td>
+                        </tr>
+                     {% endif %}
+                    <tr>
+                        <td><b>Question Title: </b></td>
+                        <td><input type="text" name = 'ques_title' size = '30'></td>
+                    </tr>
+                    <tr>
+                        <td><b>Question:</b></td>
+                        <td><textarea name='ques' cols="30" rows="10"></textarea></td>
+                    </tr>
+                    {% endif %}
+               </table>
+               {% if wall.1 == 'True' %}<input type="submit" name = 'send' value="Submit">{% endif %}
+               <br><br>
+           </center>
+        </form>
+    </body>
+</html>
