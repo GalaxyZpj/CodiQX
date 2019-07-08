@@ -24,7 +24,7 @@ urlpatterns = [
     path('loginCheck/', views.loginCheck),
     path('register/', views.register),
     path('result/', views.result),
-    path('newout/', views.questionDashboard),
-    path('qView/', views.questionDisplay),
+    path('addQuestion/', views.addQuestion),
+    path('questionView/', views.questionView),
     path('addTestcase', views.addTestcase),
 ]
