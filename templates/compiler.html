@@ -12,7 +12,7 @@
                 </select>
             </div>
             <div align = "center">
-                <b>QUESTION <br><br> {{question.0}}:  {{question.1}}</b>
+                <b><h1>QUESTION </h1><br><br> <h2>{{question.0}}</h2>  {{question.1|linebreaks}}</b>
                 
                 <div><br>
                     <textarea name="code" id="code" cols="230" rows="50" value = "{{code}}"></textarea>
@@ -24,19 +24,53 @@
         <center>
             <input type="submit" name = "subcode"><br><br><br>
             {% for x in d %}
-            <table width = "700" height = "200" border = "1">
+            <table cellpadding = "40" border = "1">
                 <caption><h3>Testcase {{x.0}}</h3></caption><br>
                 <tr>
+                    <td align="center"><b>Description:  </b></td>
+                    <td align="center">{{x.3|linebreaks}}
+                </tr>
+                {% if x.6 != None %}
+                <tr>
+                    <td align="center"><b>Message:  </b></td>
+                    <td align="center">{{x.6|linebreaks}}
+                </tr>
+                {% endif %}
+                {% if x.4 != None %}
+                <tr>
+                    <td align="center"><b>STDERR:  </b></td>
+                    <td align="center">{{x.4|linebreaks}}
+                </tr>
+                {% endif %}
+                {% if x.5 != None %}
+                <tr>
+                    <td align="center"><b>Compiler Output:  </b></td>
+                    <td align="center">{{x.5|linebreaks}}
+                </tr>
+                {% endif %}
+                {% if x.7 != None %}
+                <tr>
+                    <td align="center"><b>Time:  </b></td>
+                    <td align="center">{{x.7|linebreaks}}
+                </tr>
+                {% endif %}
+                {% if x.8 != None %}
+                <tr>
+                    <td align="center"><b>Memory:  </b></td>
+                    <td align="center">{{x.8|linebreaks}}
+                </tr>
+                {% endif %}
+                <tr>
                     <td align="center"><b>stdin:  </b></td>
-                    <td align="center">{{x.1}}</td>
+                    <td align="center">{{x.1|linebreaks}}</td>
                 </tr>
                 <tr>
                     <td align="center"><b>stdout:  </b></td>
-                    <td align="center">{{x.2}}</td>
+                    <td align="center">{{x.2|linebreaks}}</td>
                 </tr>
                 <tr>
-                    <td align="center"><b>Description:  </b></td>
-                    <td align="center">{{x.3}}
+                    <td align="center"><b>Expected Output:  </b></td>
+                    <td align="center">{{x.9|linebreaks}}
                 </tr>
             </table>
             {% endfor %}

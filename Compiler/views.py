@@ -19,7 +19,7 @@ def homepage(request):
 
 def redirect(request):
     if request.GET['goto'] == 'Login': return render(request, 'login.html', {'login': ''})
-    elif request.GET['goto'] == 'Register': return render(request, 'register.html')
+    elif request.GET['goto'] == 'Register': return render(request, 'register.html', {'output': ''})
     elif request.GET['goto'] == 'RegisterQ': return render(request, "addquestion.html", {'wall': ['True', '', ''], 'output': '', 'setType': '', 'setList': [], 'set_no': '', 'qID': ''})
     elif request.GET['goto'] == 'RegisterTestcase': return render(request, 'addtestcase.html')
 
@@ -43,18 +43,31 @@ def loginCheck(request):
 def register(request):
     conn = sql.connect(host = 'localhost', port = 3306, user = 'root', password = '12345678', db = 'Judge0')
     cmd = conn.cursor()
-    q = f"insert into Compiler (first_name, last_name, email, mobile, password, create_date, update_date, status) values('{request.GET['fn']}', '{request.GET['ln']}', '{request.GET['email']}', '{request.GET['mob']}', '{request.GET['pass']}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', 'Not Verified')"
+    first_name = request.GET['fn']
+    last_name = request.GET['ln']
+    email = request.GET['email']
+    mobile = request.GET['mob']
+    password = request.GET['pass']
+    if first_name == '' or last_name == '' or email == '' or mobile == '' or password== '': return render(request, 'register.html', {'output': 'Please fill up all the required entries.'})
+    
+    q = f"select email from Compiler where email = '{email}'"
+    cmd.execute(q)
+    data = cmd.fetchone()
+    print('\n\n\n', data)
+    if data != None: return render(request, 'register.html', {'output': 'Email Record Exists. Log In instead.'})
+    q = f"insert into Compiler (first_name, last_name, email, mobile, password, create_date, update_date, status) values('{first_name}', '{last_name}', '{email}', '{mobile}', '{password}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', 'Not Verified')"
     cmd.execute(q)
     print('Record Added.')
     conn.commit()
     conn.close()
-    return HttpResponse("<html><h1>User Registered.</h1></html>")
+    return render(request, 'register.html', {'output': 'User Registered.'})
 
 def result(request):
     def evaluate(test_no, testcase):
+        print(testcase)
         global returnResult
-        #URL = 'https://api.judge0.com/submissions/' 
-        URL = 'http://0.0.0.0:3000/submissions/'
+        URL = 'https://api.judge0.com/submissions/' 
+        #URL = 'http://0.0.0.0:3000/submissions/'
 
         languages = [
             {"id": 1,"name": "C (gcc 7.2.0)"},
@@ -123,8 +136,7 @@ def result(request):
         def fetch_server(token):
             while True:
                 global use_base64
-                print('OUTPUT:-')
-                print('Processing...')
+                print('Processing...', test_no)
                 if use_base64 == True: useb64 = 'true'
                 else: useb64 = 'false'
                 r = requests.get(URL + token['token'] + '?base64_encoded=' + useb64)
@@ -180,7 +192,7 @@ def result(request):
     t = []
     for x in testcases.keys(): t.append(x)
     for r in returnResult:
-        d.append([r[0],testcases[t[r[0]-1]]['stdin'], r[1]['stdout'], r[1]['status']['description']])
+        d.append([r[0],testcases[t[r[0]-1]]['stdin'], r[1]['stdout'], r[1]['status']['description'], r[1]['stderr'], r[1]['compile_output'], r[1]['message'], r[1]['time'], r[1]['memory'], testcases[t[r[0]-1]]['expected_output']])
     return render(request, 'compiler.html', {'d': d, 'question': question, 'code': rootCode})
 
 def addQuestion(request):
@@ -226,12 +238,15 @@ def addQuestion(request):
         setType = request.GET['setType']
     except:
         setType = ''
+    print('\n\n\n\n\n',setType)
+    if org_id == '': return render(request, "addquestion.html", {'wall': wall, 'output': 'Please Enter Organization ID.', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
+    if setType == 'select': return render(request, "addquestion.html", {'wall': wall, 'output': 'Please Select Set Type.', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
     if setType == 'existing':
         q = f"select set_no from OrganizationRecord where organization_id = '{org_id}'"
         cmd.execute(q)
         setTemp = cmd.fetchall()
         if len(setTemp) == 0: return render(request, "addquestion.html", {'wall': wall, 'output': 'No Entries for your Organization, Please Select \'New\' for Set Type.', 'org_id': org_id, 'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
-        print('\n\n\n\n\n', setTemp)
+        #print('\n\n\n\n\n', setTemp)
         for x in setTemp: 
             for y in x:
                 if y not in setList: setList.append(y)
@@ -244,6 +259,7 @@ def addQuestion(request):
 
     question_title = request.GET['ques_title']
     question = request.GET['ques']
+    if question_title == '' or question == '' or set_no == '': return render(request, "addquestion.html", {'wall': wall, 'output': 'Enter All the Required Fields for adding a question.', 'org_id': org_id,  'setType': setType, 'setList': setList, 'set_no': set_no, 'qID': question_id})
     question_id = insertQuestion()
     conn.commit()
     conn.close()
@@ -278,6 +294,9 @@ def addTestcase(request):
     orgID = request.POST['orgID']
     op = request.POST['send']
     orgList = []
+    if orgID == '':
+        output = 'Please Enter Organization ID.'
+        return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
 
     if op == 'orgID':
         q = f"select question_id, question_title from OrganizationRecord where organization_id = '{orgID}'"
@@ -287,9 +306,18 @@ def addTestcase(request):
             output = 'Organization Not Registered.'
             return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
     if op == 'Submit':
-        qNo = request.POST['qNo']
+        try:
+            qNo = request.POST['qNo']
+        except:
+            qNo = ''
+        if qNo == '':
+            output = 'Please Push the orgID Button first to select Question Number.'
+            return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
         stdin = request.POST['stdin']
         expected_output = request.POST['expected_output']
+        if stdin == '' or expected_output == '':
+            output = 'Please Input Required Testcase Entries.'
+            return render(request, "addtestcase.html", {'orgID': orgID, 'orgList': orgList, 'qNo': qNo, 'stdin': stdin, 'expected_output': expected_output, 'output': output})
         output = 'Data Inserted Successfully'
         x = 1
         while True:
