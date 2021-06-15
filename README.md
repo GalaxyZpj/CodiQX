@@ -1,4 +1,4 @@
-# Judge0
+# CodiQX
 An online compiler project powered by Judge0 API
 
 A small scale imitation of platforms like HackerRank.
